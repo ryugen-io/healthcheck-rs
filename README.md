@@ -77,7 +77,7 @@ cargo bench -p healthcheck-core --bench tcp_check
 
 ```bash
 # Run with config file
-./healthcheck /path/to/config.conf
+./healthcheckrs /path/to/config.conf
 
 # Example config format:
 # tcp:host=127.0.0.1,port=22,timeout_ms=1000
@@ -97,7 +97,7 @@ FROM alpine:latest
 RUN apk add --no-cache ca-certificates
 
 # Copy healthcheck binary
-COPY --chmod=755 healthcheck /usr/local/bin/healthcheck
+COPY --chmod=755 healthcheckrs /usr/local/bin/healthcheckrs
 
 # Create healthcheck config
 RUN echo "tcp:host=127.0.0.1,port=8080,timeout_ms=1000" > /etc/healthcheck.conf
@@ -106,7 +106,7 @@ RUN echo "tcp:host=127.0.0.1,port=8080,timeout_ms=1000" > /etc/healthcheck.conf
 COPY your-app /app/your-app
 
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD ["/usr/local/bin/healthcheck", "/etc/healthcheck.conf"]
+  CMD ["/usr/local/bin/healthcheckrs", "/etc/healthcheck.conf"]
 
 CMD ["/app/your-app"]
 ```
@@ -115,10 +115,10 @@ CMD ["/app/your-app"]
 
 ```yaml
 volumes:
-  - ./healthcheck:/usr/local/bin/healthcheck:ro
+  - ./healthcheckrs:/usr/local/bin/healthcheckrs:ro
   - ./healthcheck.conf:/etc/healthcheck.conf:ro
 healthcheck:
-  test: ["/usr/local/bin/healthcheck", "/etc/healthcheck.conf"]
+  test: ["/usr/local/bin/healthcheckrs", "/etc/healthcheck.conf"]
   interval: 30s
   timeout: 3s
   retries: 3
@@ -176,6 +176,6 @@ cargo deny check  # License/advisory check
 
 Binary deployed to:
 - MetaMCP: `/usr/local/bin/metamcp-healthcheck`
-- RustDesk: `/usr/local/bin/healthcheck`
+- RustDesk: `/usr/local/bin/healthcheckrs`
 
 See `AGENTS.md` for repository guidelines and coding standards.

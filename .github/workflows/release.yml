@@ -75,12 +75,12 @@ jobs:
 
       - name: Strip binary
         run: |
-          strip target/${{ matrix.target }}/release/healthcheck || true
+          strip target/${{ matrix.target }}/release/healthcheckrs || true
 
       - name: Compress binary
         run: |
           cd target/${{ matrix.target }}/release
-          tar -czf healthcheck-${{ needs.create-release.outputs.version }}-${{ matrix.target }}.tar.gz healthcheck
+          tar -czf healthcheckrs-${{ needs.create-release.outputs.version }}-${{ matrix.target }}.tar.gz healthcheckrs
           cd -
 
       - name: Upload Release Asset
@@ -89,6 +89,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ needs.create-release.outputs.upload_url }}
-          asset_path: ./target/${{ matrix.target }}/release/healthcheck-${{ needs.create-release.outputs.version }}-${{ matrix.target }}.tar.gz
-          asset_name: healthcheck-${{ needs.create-release.outputs.version }}-${{ matrix.target }}.tar.gz
+          asset_path: ./target/${{ matrix.target }}/release/healthcheckrs-${{ needs.create-release.outputs.version }}-${{ matrix.target }}.tar.gz
+          asset_name: healthcheckrs-${{ needs.create-release.outputs.version }}-${{ matrix.target }}.tar.gz
           asset_content_type: application/gzip
