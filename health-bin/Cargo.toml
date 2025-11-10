@@ -1,0 +1,13 @@
+[package]
+name = "healthcheck-bin"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.91"
+
+[dependencies]
+healthcheck-core = { path = "../health-core" }
+log = "0.4"
+env_logger = "0.11"
+
+[dev-dependencies]
+divan = "0.1"
