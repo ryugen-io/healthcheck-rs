@@ -1,6 +1,5 @@
 use divan::Bencher;
 use healthcheck_core::probes::tcp::TcpCheck;
-use healthcheck_core::registry::HealthCheck;
 use std::collections::HashMap;
 
 fn main() {
