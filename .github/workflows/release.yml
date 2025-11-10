@@ -4,6 +4,12 @@ on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to build and upload'
+        required: true
+        type: string
 
 env:
   CARGO_TERM_COLOR: always
@@ -29,6 +35,17 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag || github.ref }}
+
+      - name: Get tag name
+        id: get_tag
+        run: |
+          if [ -n "${{ inputs.tag }}" ]; then
+            echo "tag=${{ inputs.tag }}" >> $GITHUB_OUTPUT
+          else
+            echo "tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+          fi
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
@@ -70,6 +87,6 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release upload ${{ github.ref_name }} \
+          gh release upload ${{ steps.get_tag.outputs.tag }} \
             target/${{ matrix.target }}/release/healthcheckrs-${{ steps.get_version.outputs.version }}-${{ matrix.target }}.tar.gz \
             --clobber
