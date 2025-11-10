@@ -109,20 +109,15 @@ CMD ["/app/your-app"]
 ### Method 2: Volume mount in docker-compose
 
 ```yaml
-version: '3.8'
-
-services:
-  app:
-    image: your-app:latest
-    volumes:
-      - ./healthcheck:/usr/local/bin/healthcheck:ro
-      - ./healthcheck.conf:/etc/healthcheck.conf:ro
-    healthcheck:
-      test: ["/usr/local/bin/healthcheck", "/etc/healthcheck.conf"]
-      interval: 30s
-      timeout: 3s
-      retries: 3
-      start_period: 5s
+volumes:
+  - ./healthcheck:/usr/local/bin/healthcheck:ro
+  - ./healthcheck.conf:/etc/healthcheck.conf:ro
+healthcheck:
+  test: ["/usr/local/bin/healthcheck", "/etc/healthcheck.conf"]
+  interval: 30s
+  timeout: 3s
+  retries: 3
+  start_period: 5s
 ```
 
 ### Example configs for common scenarios
