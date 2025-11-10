@@ -2,7 +2,7 @@
 
 <!-- Build & CI -->
 [![CI](https://github.com/ryugen-io/healthcheck-rs/workflows/CI/badge.svg)](https://github.com/ryugen-io/healthcheck-rs/actions)
-![Last Commit](https://img.shields.io/badge/commit-7cc778a-blue?logo=git)
+![Last Commit](https://img.shields.io/badge/commit-36df4b2-blue?logo=git)
 
 <!-- Rust -->
 ![Rust Edition](https://img.shields.io/badge/rust-2024-orange?logo=rust)
