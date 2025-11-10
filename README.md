@@ -74,12 +74,12 @@ hyperfine --warmup 10 './target/release/healthcheckrs config.conf'
 
 ### Performance Results
 
-Benchmarked on AMD Ryzen 7 7800X3D, 96GB RAM:
+Benchmarked on AMD Ryzen 7 7800X3D, 96GB RAM (binary in tmpfs):
 
-| Command | Mean [ms] | Min [ms] | Max [ms] | Relative |
+| Command | Mean [µs] | Min [µs] | Max [µs] | Relative |
 |:---|---:|---:|---:|---:|
-| `TCP Check (localhost:22)` | 15.5 ± 0.2 | 15.2 | 16.3 | 1.00 |
-| `Process Check (systemd)` | 15.6 ± 0.6 | 15.3 | 24.0 | 1.01 ± 0.04 |
+| `TCP Check (localhost:22)` | 566.5 ± 95.5 | 351.0 | 961.6 | 1.00 |
+| `Process Check (systemd)` | 658.9 ± 96.5 | 417.4 | 975.5 | 1.16 ± 0.26 |
 
 Unit-level benchmarks available with [divan](https://github.com/nvzqz/divan):
 
