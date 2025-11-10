@@ -1,0 +1,62 @@
+name: Docs Validation
+
+on:
+  push:
+    branches: [ master, main ]
+    paths:
+      - '**.md'
+  pull_request:
+    branches: [ master, main ]
+    paths:
+      - '**.md'
+
+jobs:
+  check-readme-release:
+    name: Verify README release hash
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Need full history for tags
+
+      - name: Get latest release tag hash
+        id: release
+        run: |
+          # Get the latest tag
+          LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+
+          if [ -z "$LATEST_TAG" ]; then
+            echo "No release tags found yet - skipping validation"
+            echo "skip=true" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          # Get the commit hash of that tag
+          RELEASE_HASH=$(git rev-parse --short "$LATEST_TAG")
+          echo "Latest release: $LATEST_TAG ($RELEASE_HASH)"
+          echo "hash=$RELEASE_HASH" >> $GITHUB_OUTPUT
+          echo "tag=$LATEST_TAG" >> $GITHUB_OUTPUT
+          echo "skip=false" >> $GITHUB_OUTPUT
+
+      - name: Check if README contains latest release hash
+        if: steps.release.outputs.skip != 'true'
+        run: |
+          RELEASE_HASH="${{ steps.release.outputs.hash }}"
+          RELEASE_TAG="${{ steps.release.outputs.tag }}"
+
+          echo "Checking for release hash: $RELEASE_HASH (from tag $RELEASE_TAG)"
+
+          # Check for shield badge with release hash
+          if grep -q "shields.io/badge/commit-$RELEASE_HASH-" README.md; then
+            echo "✓ README.md shield contains latest release hash: $RELEASE_HASH"
+            exit 0
+          else
+            echo "✗ ZONK! README.md shield does not contain latest release hash!"
+            echo ""
+            echo "Latest release: $RELEASE_TAG"
+            echo "Expected hash: $RELEASE_HASH"
+            echo ""
+            echo "Please update the commit shield badge in README.md:"
+            echo "![Last Commit](https://img.shields.io/badge/commit-$RELEASE_HASH-blue?logo=git)"
+            exit 1
+          fi
