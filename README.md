@@ -1,14 +1,21 @@
 # healthcheckrs
 
+<!-- Build & CI -->
 [![CI](https://github.com/ryugen-io/healthcheck-rs/workflows/CI/badge.svg)](https://github.com/ryugen-io/healthcheck-rs/actions)
+![Last Commit](https://img.shields.io/badge/commit-d9af197-blue?logo=git)
+
+<!-- Rust -->
 ![Rust Edition](https://img.shields.io/badge/rust-2024-orange?logo=rust)
 ![Rust Version](https://img.shields.io/badge/rustc-1.91+-blue?logo=rust)
-![License](https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-green)
+
+<!-- Quality -->
 ![Code Style](https://img.shields.io/badge/code%20style-rustfmt-blue)
 ![Tests](https://img.shields.io/badge/tests-21%20passing-brightgreen?logo=checkmarx)
 ![Benchmarks](https://img.shields.io/badge/benchmarks-4%20suites-blue?logo=timer)
 ![Lines of Code](https://img.shields.io/badge/max%20LOC-150%2Ffile-yellow)
-![Last Commit](https://img.shields.io/badge/commit-a88ca5a-blue?logo=git)
+
+<!-- License -->
+![License](https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-green)
 
 Modular, config-driven health check system for Docker containers.
 
