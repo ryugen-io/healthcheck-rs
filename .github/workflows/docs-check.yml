@@ -38,25 +38,42 @@ jobs:
           echo "tag=$LATEST_TAG" >> $GITHUB_OUTPUT
           echo "skip=false" >> $GITHUB_OUTPUT
 
-      - name: Check if README contains latest release hash
+      - name: Check README badges
         if: steps.release.outputs.skip != 'true'
         run: |
           RELEASE_HASH="${{ steps.release.outputs.hash }}"
           RELEASE_TAG="${{ steps.release.outputs.tag }}"
 
-          echo "Checking for release hash: $RELEASE_HASH (from tag $RELEASE_TAG)"
+          echo "Checking README badges..."
+          echo "Latest release: $RELEASE_TAG ($RELEASE_HASH)"
+          echo ""
 
-          # Check for shield badge with release hash
-          if grep -q "shields.io/badge/commit-$RELEASE_HASH-" README.md; then
-            echo "✓ README.md shield contains latest release hash: $RELEASE_HASH"
-            exit 0
+          ERRORS=0
+
+          # Check 1: Release badge exists
+          if grep -q "shields.io/github/v/release/ryugen-io/healthcheck-rs" README.md; then
+            echo "✓ Release badge present"
           else
-            echo "✗ ZONK! README.md shield does not contain latest release hash!"
+            echo "✗ Release badge missing!"
+            echo "  Add: [![Release](https://img.shields.io/github/v/release/ryugen-io/healthcheck-rs?logo=github)](https://github.com/ryugen-io/healthcheck-rs/releases)"
+            ERRORS=$((ERRORS + 1))
+          fi
+
+          # Check 2: Commit badge has correct hash
+          if grep -q "shields.io/badge/commit-$RELEASE_HASH-" README.md; then
+            echo "✓ Commit badge has latest release hash: $RELEASE_HASH"
+          else
+            echo "✗ Commit badge does not have latest release hash!"
+            echo "  Expected hash: $RELEASE_HASH"
+            echo "  Update: ![Last Commit](https://img.shields.io/badge/commit-$RELEASE_HASH-blue?logo=git)"
+            ERRORS=$((ERRORS + 1))
+          fi
+
+          if [ $ERRORS -gt 0 ]; then
             echo ""
-            echo "Latest release: $RELEASE_TAG"
-            echo "Expected hash: $RELEASE_HASH"
-            echo ""
-            echo "Please update the commit shield badge in README.md:"
-            echo "![Last Commit](https://img.shields.io/badge/commit-$RELEASE_HASH-blue?logo=git)"
+            echo "✗ ZONK! $ERRORS badge error(s) found"
             exit 1
+          else
+            echo ""
+            echo "✓ All badges valid"
           fi
