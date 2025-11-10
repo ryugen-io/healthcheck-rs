@@ -175,7 +175,7 @@ cargo deny check  # License/advisory check
 ## Deployment
 
 Binary deployed to:
-- MetaMCP: `/usr/local/bin/metamcp-healthcheck`
+- MetaMCP: `/usr/local/bin/healthcheckrs`
 - RustDesk: `/usr/local/bin/healthcheckrs`
 
 See `AGENTS.md` for repository guidelines and coding standards.
