@@ -1,9 +1,9 @@
 # healthcheckrs
 
 <!-- Build & CI -->
-[![CI](https://github.com/ryugen-io/healthcheck-rs/workflows/CI/badge.svg?branch=master)](https://github.com/ryugen-io/healthcheck-rs/actions)
+[![CI](https://img.shields.io/github/actions/workflow/status/ryugen-io/healthcheck-rs/ci.yml?branch=master&label=CI&logo=github)](https://github.com/ryugen-io/healthcheck-rs/actions)
 [![Release](https://img.shields.io/github/v/release/ryugen-io/healthcheck-rs?logo=github)](https://github.com/ryugen-io/healthcheck-rs/releases)
-![Last Commit](https://img.shields.io/badge/commit-36df4b2-blue?logo=git)
+![Last Commit](https://img.shields.io/badge/commit-6f040bd-blue?logo=git)
 
 <!-- Rust -->
 ![Rust Edition](https://img.shields.io/badge/rust-2024-orange?logo=rust)
