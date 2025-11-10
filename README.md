@@ -228,6 +228,10 @@ cargo deny check  # License/advisory check
 - **Clippy**: Zero warnings (`-D warnings`)
 - **License**: MIT OR Apache-2.0
 
+## Planned Features
+
+- **API Access**: Fetch external data from APIs for health checks (e.g., check service status via REST endpoint)
+
 ## Deployment
 
 Recommended installation:
