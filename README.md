@@ -1,4 +1,4 @@
-# Healthcheck
+# healthcheckrs
 
 [![CI](https://github.com/ryugen-io/healthcheck-rs/workflows/CI/badge.svg)](https://github.com/ryugen-io/healthcheck-rs/actions)
 ![Rust Edition](https://img.shields.io/badge/rust-2024-orange?logo=rust)
@@ -9,7 +9,7 @@
 ![Benchmarks](https://img.shields.io/badge/benchmarks-4%20suites-blue?logo=timer)
 ![Lines of Code](https://img.shields.io/badge/max%20LOC-150%2Ffile-yellow)
 
-Modular, config-driven healthcheck system for Docker containers.
+Modular, config-driven health check system for Docker containers.
 
 A small project as I am just learning rust and swapped to linux in general.
 bare with me.
@@ -96,17 +96,17 @@ FROM alpine:latest
 # Install dependencies (if needed)
 RUN apk add --no-cache ca-certificates
 
-# Copy healthcheck binary
+# Copy healthcheckrs binary
 COPY --chmod=755 healthcheckrs /usr/local/bin/healthcheckrs
 
-# Create healthcheck config
-RUN echo "tcp:host=127.0.0.1,port=8080,timeout_ms=1000" > /etc/healthcheck.conf
+# Create healthcheckrs config
+RUN echo "tcp:host=127.0.0.1,port=8080,timeout_ms=1000" > /etc/healthcheckrs.conf
 
 # Your application setup here
 COPY your-app /app/your-app
 
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD ["/usr/local/bin/healthcheckrs", "/etc/healthcheck.conf"]
+  CMD ["/usr/local/bin/healthcheckrs", "/etc/healthcheckrs.conf"]
 
 CMD ["/app/your-app"]
 ```
@@ -116,9 +116,9 @@ CMD ["/app/your-app"]
 ```yaml
 volumes:
   - ./healthcheckrs:/usr/local/bin/healthcheckrs:ro
-  - ./healthcheck.conf:/etc/healthcheck.conf:ro
+  - ./healthcheckrs.conf:/etc/healthcheckrs.conf:ro
 healthcheck:
-  test: ["/usr/local/bin/healthcheckrs", "/etc/healthcheck.conf"]
+  test: ["/usr/local/bin/healthcheckrs", "/etc/healthcheckrs.conf"]
   interval: 30s
   timeout: 3s
   retries: 3
@@ -174,8 +174,9 @@ cargo deny check  # License/advisory check
 
 ## Deployment
 
-Binary deployed to:
-- MetaMCP: `/usr/local/bin/healthcheckrs`
-- RustDesk: `/usr/local/bin/healthcheckrs`
+Recommended installation:
+- Copy `healthcheckrs` binary to `/usr/local/bin/healthcheckrs`
+- Place config files in `/etc/` directory
+- Set binary permissions to `755`
 
 See `AGENTS.md` for repository guidelines and coding standards.
