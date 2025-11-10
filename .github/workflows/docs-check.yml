@@ -31,8 +31,8 @@ jobs:
             exit 0
           fi
 
-          # Get the commit hash of that tag
-          RELEASE_HASH=$(git rev-parse --short "$LATEST_TAG")
+          # Get the commit hash of that tag (dereference annotated tags)
+          RELEASE_HASH=$(git rev-parse --short "$LATEST_TAG^{commit}")
           echo "Latest release: $LATEST_TAG ($RELEASE_HASH)"
           echo "hash=$RELEASE_HASH" >> $GITHUB_OUTPUT
           echo "tag=$LATEST_TAG" >> $GITHUB_OUTPUT
