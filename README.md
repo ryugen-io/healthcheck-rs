@@ -10,9 +10,8 @@
 ![Rust Version](https://img.shields.io/badge/rustc-1.91+-blue?logo=rust)
 
 <!-- Quality -->
+[![Tests](https://img.shields.io/github/actions/workflow/status/ryugen-io/healthcheck-rs/ci.yml?branch=master&label=tests&logo=checkmarx)](https://github.com/ryugen-io/healthcheck-rs/actions/workflows/ci.yml)
 ![Code Style](https://img.shields.io/badge/code%20style-rustfmt-blue)
-![Tests](https://img.shields.io/badge/tests-21%20passing-brightgreen?logo=checkmarx)
-![Benchmarks](https://img.shields.io/badge/benchmarks-4%20suites-blue?logo=timer)
 ![Lines of Code](https://img.shields.io/badge/max%20LOC-150%2Ffile-yellow)
 
 <!-- License -->
@@ -75,12 +74,18 @@ cargo bench -p healthcheck-core
 # Run specific benchmark
 cargo bench -p healthcheck-core --bench tcp_check
 
-# Available benchmarks:
-# - tcp_check.rs      - TCP check performance
-# - http_check.rs     - HTTP config parsing
-# - process_check.rs  - Process check performance
-# - database_check.rs - Database config parsing
+# Generate flamegraphs (requires perf)
+cargo flamegraph --bench tcp_check -o flamegraph-tcp.svg -- --bench
 ```
+
+### Performance Profiles
+
+Flamegraphs visualize where time is spent during benchmark execution:
+
+- [TCP Check Flamegraph](health-core/flamegraph-tcp.svg)
+- [HTTP Check Flamegraph](health-core/flamegraph-http.svg)
+- [Process Check Flamegraph](health-core/flamegraph-process.svg)
+- [Database Check Flamegraph](health-core/flamegraph-database.svg)
 
 ## Usage
 
