@@ -24,3 +24,8 @@ Thumbs.db
 # Backup files
 *.backup
 *.old
+
+# Local development files
+.serena/
+.claude/
+AGENTS.md
