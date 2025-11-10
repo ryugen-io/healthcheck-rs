@@ -48,3 +48,12 @@ run:
 
 release:
     cargo run -p health-bin --release
+
+bench:
+    cargo bench -p healthcheck-core
+
+bench-docker:
+    docker-compose -f tests/docker-compose.bench.yml run --rm healthcheck-bench /usr/local/bin/run-bench.sh
+
+bench-docker-build:
+    docker-compose -f tests/docker-compose.bench.yml build
