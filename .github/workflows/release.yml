@@ -73,6 +73,15 @@ jobs:
         run: |
           strip target/${{ matrix.target }}/release/healthcheckrs || true
 
+      - name: Install UPX
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y upx
+
+      - name: Compress with UPX
+        run: |
+          upx --best --lzma target/${{ matrix.target }}/release/healthcheckrs || true
+
       - name: Get version
         id: get_version
         run: |
