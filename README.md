@@ -1,7 +1,7 @@
 # healthcheckrs
 
 <!-- Build & CI -->
-[![CI](https://github.com/ryugen-io/healthcheck-rs/workflows/CI/badge.svg)](https://github.com/ryugen-io/healthcheck-rs/actions)
+[![CI](https://github.com/ryugen-io/healthcheck-rs/workflows/CI/badge.svg?branch=master)](https://github.com/ryugen-io/healthcheck-rs/actions)
 [![Release](https://img.shields.io/github/v/release/ryugen-io/healthcheck-rs?logo=github)](https://github.com/ryugen-io/healthcheck-rs/releases)
 ![Last Commit](https://img.shields.io/badge/commit-36df4b2-blue?logo=git)
 
