@@ -10,6 +10,10 @@
 
 Modular, config-driven healthcheck system for Docker containers.
 
+A small project as I am just learning rust and swapped to linux in general.
+bare with me.
+built with my buddy codex.
+
 ## Features
 
 - **TCP Port Check**: Verify TCP connectivity
