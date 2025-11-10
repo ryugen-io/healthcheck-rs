@@ -78,10 +78,24 @@ hyperfine --warmup 10 './target/release/healthcheckrs config.conf'
 
 Benchmarked on Raspberry Pi 5 (Cortex-A76, 4 cores, 8GB RAM, Arch Linux ARM) in Ubuntu 24.04 Docker container:
 
+**End-to-End (hyperfine):**
 | Command | Mean [ms] | Min [ms] | Max [ms] | Relative |
 |:---|---:|---:|---:|---:|
-| `TCP Check (localhost:22)` | 58.2 ± 12.8 | 33.1 | 85.6 | 1.07 ± 0.36 |
-| `Process Check (sshd)` | 54.4 ± 13.8 | 32.4 | 79.2 | 1.00 |
+| `TCP Check (localhost:22)` | 3.6 ± 3.1 | 0.8 | 20.1 | 6.46 ± 5.61 |
+| `Process Check (sshd)` | 0.6 ± 0.1 | 0.5 | 1.8 | 1.00 |
+
+**Unit-Level (divan):**
+| Benchmark | Mean | Median | Range |
+|:---|---:|---:|---:|
+| TCP check | 45.39 µs | 31.43 µs | 19.72 µs - 420.5 µs |
+| Process check (existing) | 23.82 µs | 23.21 µs | 23.11 µs - 80.12 µs |
+| Process check (nonexistent) | 24.31 µs | 23.31 µs | 23.22 µs - 80.81 µs |
+| TCP config parse | 205.2 ns | 198.4 ns | 196 ns - 325.7 ns |
+| Process config parse | 110.7 ns | 79.2 ns | 78.01 ns - 2.014 µs |
+| HTTP config parse | 138.4 ns | 138.2 ns | 137 ns - 152 ns |
+| HTTP config parse (HTTPS) | 140.6 ns | 138.2 ns | 137 ns - 235.4 ns |
+| Database config parse | 201.5 ns | 184.3 ns | 165.3 ns - 2.166 µs |
+| Database config parse (complex) | 174.8 ns | 163.6 ns | 161.3 ns - 794.4 ns |
 
 #### x86_64 (Native)
 
@@ -92,30 +106,25 @@ Benchmarked on AMD Ryzen 7 7800X3D, 96GB RAM (binary in tmpfs):
 | `TCP Check (localhost:22)` | 566.5 ± 95.5 | 351.0 | 961.6 | 1.00 |
 | `Process Check (systemd)` | 658.9 ± 96.5 | 417.4 | 975.5 | 1.16 ± 0.26 |
 
-Unit-level benchmarks available with [divan](https://github.com/nvzqz/divan):
-
-```bash
-# Run internal benchmarks
-cargo bench -p healthcheck-core
-```
-
 ### Benchmark Container
 
 Run comprehensive benchmarks in a containerized environment:
 
 ```bash
-# Using docker-compose
-docker-compose -f tests/docker-compose.bench.yml up --build
+# Build benchmark container
+./tests/bench-build.sh
 
-# Or manually
-docker build -f tests/Dockerfile.bench -t healthcheck-bench .
-docker run --rm healthcheck-bench
+# Run all benchmarks (hyperfine + divan)
+./tests/bench-run.sh
+
+# Stop/cleanup benchmark containers
+./tests/bench-stop.sh
 ```
 
 The benchmark container includes:
 - Full Rust toolchain for building from source
 - hyperfine for end-to-end benchmarks
-- criterion/divan for detailed unit-level profiling with HTML reports
+- divan for detailed unit-level profiling
 - SSH server for realistic TCP check testing
 
 See [`tests/README.bench.md`](tests/README.bench.md) for detailed usage.

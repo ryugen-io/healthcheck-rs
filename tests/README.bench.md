@@ -12,8 +12,14 @@ Comprehensive benchmarking environment for healthcheckrs with both end-to-end an
 ## Quick Start
 
 ```bash
-# Build and run benchmarks
-docker-compose -f tests/docker-compose.bench.yml up --build
+# Build benchmark container
+./tests/bench-build.sh
+
+# Run all benchmarks (hyperfine + divan)
+./tests/bench-run.sh
+
+# Stop and cleanup
+./tests/bench-stop.sh
 
 # Or run interactively
 docker-compose -f tests/docker-compose.bench.yml run --rm healthcheck-bench bash
