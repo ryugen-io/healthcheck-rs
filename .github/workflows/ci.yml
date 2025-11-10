@@ -7,7 +7,6 @@ on:
       - '**.md'
       - 'LICENSE*'
       - '.gitignore'
-      - '.github/workflows/docs-check.yml'
       - '.github/workflows/release.yml'
       - 'AGENTS.md'
   pull_request:
@@ -16,7 +15,6 @@ on:
       - '**.md'
       - 'LICENSE*'
       - '.gitignore'
-      - '.github/workflows/docs-check.yml'
       - '.github/workflows/release.yml'
       - 'AGENTS.md'
 
