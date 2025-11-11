@@ -48,7 +48,8 @@ fn handle_stream(
         .map_err(|err| err.to_string())?;
 
     let mut reader = BufReader::new(stream);
-    let mut status_line = String::new();
+    // Pre-allocate with reasonable capacity for typical HTTP status lines
+    let mut status_line = String::with_capacity(64);
     reader
         .read_line(&mut status_line)
         .map_err(|_| "failed to read HTTP status line".to_string())?;
@@ -79,8 +80,17 @@ fn resolve_addresses(target: &HttpTarget) -> Result<Vec<SocketAddr>, String> {
 }
 
 fn build_request(target: &HttpTarget) -> String {
-    format!(
-        "GET {} HTTP/1.1\r\nHost: {}\r\nUser-Agent: metamcp-healthcheck\r\nConnection: close\r\n\r\n",
-        target.path, target.display_host
-    )
+    // Pre-allocate capacity for the HTTP request
+    // Typical size: "GET " (4) + path + " HTTP/1.1\r\n" (11) + "Host: " (6) + host + 
+    // "\r\nUser-Agent: metamcp-healthcheck\r\nConnection: close\r\n\r\n" (60)
+    let capacity = 81 + target.path.len() + target.display_host.len();
+    let mut request = String::with_capacity(capacity);
+    
+    request.push_str("GET ");
+    request.push_str(&target.path);
+    request.push_str(" HTTP/1.1\r\nHost: ");
+    request.push_str(&target.display_host);
+    request.push_str("\r\nUser-Agent: metamcp-healthcheck\r\nConnection: close\r\n\r\n");
+    
+    request
 }

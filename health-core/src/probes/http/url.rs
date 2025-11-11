@@ -56,25 +56,28 @@ fn parse_ipv6_authority(authority: &str, path: String) -> Result<HttpTarget, Str
 }
 
 fn parse_host_authority(authority: &str, path: String) -> Result<HttpTarget, String> {
-    let mut host = authority.to_string();
-    let mut port = 80u16;
+    let (host_str, port) = if let Some(idx) = authority.rfind(':') {
+        if authority[idx + 1..].chars().all(|c| c.is_ascii_digit()) {
+            let parsed_port = authority[idx + 1..]
+                .parse::<u16>()
+                .map_err(|_| "invalid port".to_string())?;
+            (&authority[..idx], parsed_port)
+        } else {
+            (authority, 80u16)
+        }
+    } else {
+        (authority, 80u16)
+    };
 
-    if let Some(idx) = authority.rfind(':')
-        && authority[idx + 1..].chars().all(|c| c.is_ascii_digit())
-    {
-        host = authority[..idx].to_string();
-        port = authority[idx + 1..]
-            .parse::<u16>()
-            .map_err(|_| "invalid port".to_string())?;
-    }
-
-    if host.is_empty() {
+    if host_str.is_empty() {
         return Err("missing host".into());
     }
 
+    let host = host_str.to_string();
+    
     Ok(HttpTarget {
-        display_host: host.clone(),
-        host,
+        host: host.clone(),
+        display_host: host,
         port,
         path,
     })

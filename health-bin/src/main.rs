@@ -53,7 +53,7 @@ fn main() {
     info!("Running {} health checks", check_configs.len());
 
     let registry = build_registry();
-    let mut results = Vec::new();
+    let mut results = Vec::with_capacity(check_configs.len());
     let mut overall_ok = true;
 
     for check_config in check_configs {
@@ -117,7 +117,7 @@ fn print_results(results: &[CheckResult], overall: bool) {
         println!("      \"latency_ms\": {},", result.latency_ms);
 
         if let Some(err) = &result.error {
-            let escaped = err.replace('\\', "\\\\").replace('"', "\\\"");
+            let escaped = escape_json_string(err);
             println!("      \"error\": \"{}\"", escaped);
         } else {
             println!("      \"error\": null");
@@ -131,9 +131,28 @@ fn print_results(results: &[CheckResult], overall: bool) {
 }
 
 fn print_error_json(message: &str) {
-    let escaped = message.replace('\\', "\\\\").replace('"', "\\\"");
+    let escaped = escape_json_string(message);
     println!("{{");
     println!("  \"overall\": false,");
     println!("  \"error\": \"{}\"", escaped);
     println!("}}");
+}
+
+/// Escape special characters in JSON strings more efficiently
+fn escape_json_string(s: &str) -> String {
+    // Pre-allocate with some extra capacity for escape sequences
+    let mut result = String::with_capacity(s.len() + 16);
+    
+    for ch in s.chars() {
+        match ch {
+            '\\' => result.push_str("\\\\"),
+            '"' => result.push_str("\\\""),
+            '\n' => result.push_str("\\n"),
+            '\r' => result.push_str("\\r"),
+            '\t' => result.push_str("\\t"),
+            _ => result.push(ch),
+        }
+    }
+    
+    result
 }

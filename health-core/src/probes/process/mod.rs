@@ -55,17 +55,28 @@ impl HealthCheck for ProcessCheck {
 fn is_process_running(process_name: &str) -> Result<bool, String> {
     let proc_dir = fs::read_dir("/proc").map_err(|e| format!("failed to read /proc: {e}"))?;
 
-    for entry in proc_dir.flatten() {
+    for entry in proc_dir {
+        let entry = match entry {
+            Ok(e) => e,
+            Err(_) => continue,
+        };
+
         // Only check numeric directories (PIDs)
-        if let Ok(file_name) = entry.file_name().into_string()
-            && file_name.chars().all(|c| c.is_ascii_digit())
+        let file_name = match entry.file_name().into_string() {
+            Ok(name) => name,
+            Err(_) => continue,
+        };
+
+        if !file_name.chars().all(|c| c.is_ascii_digit()) {
+            continue;
+        }
+
+        // Early return optimization: exit as soon as we find the process
+        let cmdline_path = format!("/proc/{}/comm", file_name);
+        if let Ok(comm) = fs::read_to_string(&cmdline_path)
+            && comm.trim() == process_name
         {
-            let cmdline_path = format!("/proc/{}/comm", file_name);
-            if let Ok(comm) = fs::read_to_string(&cmdline_path)
-                && comm.trim() == process_name
-            {
-                return Ok(true);
-            }
+            return Ok(true);
         }
     }
 
