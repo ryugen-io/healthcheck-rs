@@ -51,6 +51,9 @@ print_header() {
 
 # Analyze files
 analyze_files() {
+    local limit=$1
+    local yellow_threshold=$((limit * 80 / 100))  # 80% of limit
+
     local rs_files
     rs_files=$(find . -name "*.rs" -not -path "./target/*" | sort)
 
@@ -66,7 +69,7 @@ analyze_files() {
     local min_lines=999999
     local min_file=""
 
-    echo -e "${BLUE}${FILE}  File Analysis:${NC}"
+    echo -e "${BLUE}${FILE}  File Analysis (limit: ${limit} lines):${NC}"
     echo ""
 
     # Analyze each file
@@ -89,12 +92,12 @@ analyze_files() {
                 min_file=$file
             fi
 
-            # Color code by size
+            # Color code by size (green <80%, yellow 80%-100%, red >100%)
             local color icon
-            if [ $lines -gt 100 ]; then
+            if [ $lines -gt $limit ]; then
                 color=$RED
                 icon="${WARN}"
-            elif [ $lines -gt 80 ]; then
+            elif [ $lines -gt $yellow_threshold ]; then
                 color=$YELLOW
                 icon="${WARN}"
             else
@@ -122,22 +125,35 @@ analyze_files() {
     echo -e "  Min lines:     ${min_lines} ${GREEN}(${min_file})${NC}"
     echo ""
 
-    # Check if we have files over 100 lines
-    local over_100
-    over_100=$(find . -name "*.rs" -not -path "./target/*" -exec wc -l {} \; | awk '$1 > 100 {count++} END {print count+0}')
+    # Check if we have files over the limit
+    local over_limit
+    over_limit=$(find . -name "*.rs" -not -path "./target/*" -exec wc -l {} \; | awk -v limit="$limit" '$1 > limit {count++} END {print count+0}')
 
-    if [ $over_100 -gt 0 ]; then
-        echo -e "${YELLOW}${WARN}  Warning: ${over_100} file(s) exceed 100 lines${NC}"
+    if [ $over_limit -gt 0 ]; then
+        echo -e "${RED}${WARN}  Warning: ${over_limit} file(s) exceed ${limit} lines${NC}"
     else
-        echo -e "${GREEN}  All files under 100 lines!${NC}"
+        echo -e "${GREEN}  All files under ${limit} lines!${NC}"
     fi
 }
 
 # Main execution
 main() {
+    # Parse optional line limit argument
+    local limit=150
+    if [ $# -gt 0 ]; then
+        if [[ "$1" =~ ^[0-9]+$ ]]; then
+            limit=$1
+        else
+            echo -e "${RED}  Error: Line limit must be a positive number${NC}" >&2
+            echo "Usage: $0 [line_limit]" >&2
+            echo "Example: $0 120" >&2
+            exit 1
+        fi
+    fi
+
     print_header
     check_dependencies
-    analyze_files
+    analyze_files "$limit"
 }
 
 main "$@"
