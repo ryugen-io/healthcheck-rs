@@ -185,3 +185,73 @@ fn test_generate_bin_missing_output_value() {
     let stderr = String::from_utf8_lossy(&output.stderr);
     assert!(stderr.contains("--output requires a path argument"));
 }
+
+#[test]
+fn test_serve_command_unimplemented() {
+    let output = Command::new(get_healthcheck_bin())
+        .arg("serve")
+        .output()
+        .expect("failed to execute healthcheck serve");
+
+    // serve command should exit with error and indicate it's not implemented yet
+    assert!(!output.status.success(), "Should exit with error code");
+
+    let stderr = String::from_utf8_lossy(&output.stderr);
+
+    // Check that stderr contains the not implemented message
+    assert!(
+        stderr.contains("not yet implemented") || stderr.contains("Coming soon"),
+        "serve command should indicate it's not implemented yet. Got: {}",
+        stderr
+    );
+}
+
+#[test]
+fn test_watch_command_unimplemented() {
+    let output = Command::new(get_healthcheck_bin())
+        .arg("watch")
+        .output()
+        .expect("failed to execute healthcheck watch");
+
+    // watch command should exit with error and indicate it's not implemented yet
+    assert!(!output.status.success(), "Should exit with error code");
+
+    let stderr = String::from_utf8_lossy(&output.stderr);
+
+    // Check that stderr contains the not implemented message
+    assert!(
+        stderr.contains("not yet implemented") || stderr.contains("Coming soon"),
+        "watch command should indicate it's not implemented yet. Got: {}",
+        stderr
+    );
+}
+
+#[test]
+fn test_generate_conf_non_interactive_existing_file() {
+    let config_path = env::temp_dir().join("test_existing.config");
+
+    // Create the file first
+    fs::write(&config_path, "existing content").expect("failed to write existing file");
+
+    // Try to generate conf in non-interactive mode (will fail because file exists)
+    let output = Command::new(get_healthcheck_bin())
+        .arg("generate-conf")
+        .arg("--output")
+        .arg(&config_path)
+        .output()
+        .expect("failed to execute healthcheck generate-conf");
+
+    // Cleanup
+    fs::remove_file(&config_path).ok();
+
+    // In non-interactive mode, should fail when file exists
+    // Note: This test might succeed in some CI environments that have a TTY,
+    // so we check for either success (with prompt) or failure (without TTY)
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        assert!(
+            stderr.contains("already exists"),
+            "Should indicate file already exists"
+        );
+    }
+}

@@ -1,6 +1,6 @@
 use std::env;
 use std::fs;
-use std::io::Write;
+use std::io::{self, IsTerminal, Write};
 use std::path::{Path, PathBuf};
 
 /// Validate and safely resolve output path to prevent path traversal attacks
@@ -220,16 +220,25 @@ process:name=postgres
 
     // Check if file already exists
     if validated_path.exists() {
-        eprintln!(
-            "Warning: File '{}' already exists and will be overwritten.",
-            config_path
-        );
-        eprintln!("Press Ctrl+C to cancel, or Enter to continue...");
+        // Check if we're in an interactive terminal
+        if io::stdin().is_terminal() {
+            eprintln!(
+                "Warning: File '{}' already exists and will be overwritten.",
+                config_path
+            );
+            eprintln!("Press Ctrl+C to cancel, or Enter to continue...");
 
-        let mut input = String::new();
-        std::io::stdin()
-            .read_line(&mut input)
-            .map_err(|e| format!("Failed to read input: {}", e))?;
+            let mut input = String::new();
+            io::stdin()
+                .read_line(&mut input)
+                .map_err(|e| format!("Failed to read input: {}", e))?;
+        } else {
+            // Non-interactive mode (CI/CD, scripts, etc.)
+            return Err(format!(
+                "File '{}' already exists. Remove it first or run in an interactive terminal to confirm overwrite.",
+                config_path
+            ));
+        }
     }
 
     let mut file = fs::File::create(&validated_path)
