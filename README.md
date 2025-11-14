@@ -1,4 +1,4 @@
-# healthcheckrs
+# healthcheck
 
 <!-- Build & CI -->
 [![CI](https://img.shields.io/github/actions/workflow/status/ryugen-io/healthcheck-rs/ci.yml?branch=master&label=CI&logo=github)](https://github.com/ryugen-io/healthcheck-rs/actions)
@@ -69,7 +69,7 @@ End-to-end benchmarks using [hyperfine](https://github.com/sharkdp/hyperfine):
 
 ```bash
 # Run benchmarks with hyperfine
-hyperfine --warmup 10 './target/release/healthcheckrs config.conf'
+hyperfine --warmup 10 './target/release/healthcheck config.conf'
 ```
 
 ### Performance Results
@@ -133,7 +133,7 @@ See [`tests/README.bench.md`](tests/README.bench.md) for detailed usage.
 
 ```bash
 # Run with config file
-./healthcheckrs /path/to/config.conf
+./healthcheck /path/to/config.conf
 
 # Example config format:
 # tcp:host=127.0.0.1,port=22,timeout_ms=1000
@@ -152,17 +152,17 @@ FROM alpine:latest
 # Install dependencies (if needed)
 RUN apk add --no-cache ca-certificates
 
-# Copy healthcheckrs binary
-COPY --chmod=755 healthcheckrs /usr/local/bin/healthcheckrs
+# Copy healthcheck binary
+COPY --chmod=755 healthcheck /usr/local/bin/healthcheck
 
-# Create healthcheckrs config
-RUN echo "tcp:host=127.0.0.1,port=8080,timeout_ms=1000" > /etc/healthcheckrs.conf
+# Create healthcheck config
+RUN echo "tcp:host=127.0.0.1,port=8080,timeout_ms=1000" > /etc/healthcheck.conf
 
 # Your application setup here
 COPY your-app /app/your-app
 
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD ["/usr/local/bin/healthcheckrs", "/etc/healthcheckrs.conf"]
+  CMD ["/usr/local/bin/healthcheck", "/etc/healthcheck.conf"]
 
 CMD ["/app/your-app"]
 ```
@@ -171,10 +171,10 @@ CMD ["/app/your-app"]
 
 ```yaml
 volumes:
-  - ./healthcheckrs:/usr/local/bin/healthcheckrs:ro
-  - ./healthcheckrs.conf:/etc/healthcheckrs.conf:ro
+  - ./healthcheck:/usr/local/bin/healthcheck:ro
+  - ./healthcheck.conf:/etc/healthcheck.conf:ro
 healthcheck:
-  test: ["/usr/local/bin/healthcheckrs", "/etc/healthcheckrs.conf"]
+  test: ["/usr/local/bin/healthcheck", "/etc/healthcheck.conf"]
   interval: 30s
   timeout: 3s
   retries: 3
@@ -235,6 +235,6 @@ cargo deny check  # License/advisory check
 ## Deployment
 
 Recommended installation:
-- Copy `healthcheckrs` binary to `/usr/local/bin/healthcheckrs`
+- Copy `healthcheck` binary to `/usr/local/bin/healthcheck`
 - Place config files in `/etc/` directory
 - Set binary permissions to `755`

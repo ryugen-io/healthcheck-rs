@@ -43,15 +43,19 @@ pub fn print_error_json(message: &str) {
     println!("}}");
 }
 
+// Extra capacity for escape sequences in JSON strings
+const JSON_ESCAPE_BUFFER: usize = 16;
+
 /// Escape special characters in JSON strings per RFC 8259
 fn escape_json_string(s: &str) -> String {
     // Pre-allocate with some extra capacity for escape sequences
-    let mut result = String::with_capacity(s.len() + 16);
+    let mut result = String::with_capacity(s.len() + JSON_ESCAPE_BUFFER);
 
     for ch in s.chars() {
         match ch {
             '\\' => result.push_str("\\\\"),
             '"' => result.push_str("\\\""),
+            '/' => result.push_str("\\/"), // Solidus (optional but recommended for XSS prevention)
             '\n' => result.push_str("\\n"),
             '\r' => result.push_str("\\r"),
             '\t' => result.push_str("\\t"),
@@ -112,7 +116,7 @@ mod tests {
     #[test]
     fn test_escape_json_string_mixed() {
         let input = "Error: \"connection\\failed\"\nDetails:\tN/A\r\n";
-        let expected = "Error: \\\"connection\\\\failed\\\"\\nDetails:\\tN/A\\r\\n";
+        let expected = "Error: \\\"connection\\\\failed\\\"\\nDetails:\\tN\\/A\\r\\n";
         assert_eq!(escape_json_string(input), expected);
     }
 
@@ -135,5 +139,16 @@ mod tests {
 
         // Mixed with normal text
         assert_eq!(escape_json_string("test\u{0000}data"), "test\\u0000data");
+    }
+
+    #[test]
+    fn test_escape_json_string_solidus() {
+        // Forward slash (solidus) - optional but recommended for XSS prevention
+        assert_eq!(escape_json_string("/"), "\\/");
+        assert_eq!(
+            escape_json_string("http://example.com/path"),
+            "http:\\/\\/example.com\\/path"
+        );
+        assert_eq!(escape_json_string("</script>"), "<\\/script>");
     }
 }

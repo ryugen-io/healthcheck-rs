@@ -218,6 +218,20 @@ process:name=postgres
 # All checks run in parallel for fast results
 "#;
 
+    // Check if file already exists
+    if validated_path.exists() {
+        eprintln!(
+            "Warning: File '{}' already exists and will be overwritten.",
+            config_path
+        );
+        eprintln!("Press Ctrl+C to cancel, or Enter to continue...");
+
+        let mut input = String::new();
+        std::io::stdin()
+            .read_line(&mut input)
+            .map_err(|e| format!("Failed to read input: {}", e))?;
+    }
+
     let mut file = fs::File::create(&validated_path)
         .map_err(|e| format!("Failed to create config file '{}': {}", config_path, e))?;
 
