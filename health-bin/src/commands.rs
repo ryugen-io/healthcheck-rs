@@ -48,10 +48,10 @@ pub fn generate_bin(output_dir: Option<String>) -> Result<(), String> {
     let binary_name = format!("healthcheck-{}-{}{}", os, arch, ext);
     let output_path = Path::new(out_dir).join(&binary_name);
 
-    println!("📦 Generating binary for deployment...");
-    println!("   Platform: {}-{}", os, arch);
-    println!("   Source:   {}", current_exe.display());
-    println!("   Target:   {}", output_path.display());
+    println!("Generating binary for deployment...");
+    println!("  Platform: {}-{}", os, arch);
+    println!("  Source:   {}", current_exe.display());
+    println!("  Target:   {}", output_path.display());
 
     // Copy the binary
     fs::copy(&current_exe, &output_path).map_err(|e| format!("Failed to copy binary: {}", e))?;
@@ -68,11 +68,11 @@ pub fn generate_bin(output_dir: Option<String>) -> Result<(), String> {
             .map_err(|e| format!("Failed to set permissions: {}", e))?;
     }
 
-    println!("✅ Binary generated successfully!");
+    println!("Binary generated successfully!");
     println!();
     println!("Docker example:");
-    println!("   COPY {} /usr/local/bin/healthcheck", binary_name);
-    println!("   RUN chmod +x /usr/local/bin/healthcheck");
+    println!("  COPY {} /usr/local/bin/healthcheck", binary_name);
+    println!("  RUN chmod +x /usr/local/bin/healthcheck");
 
     Ok(())
 }

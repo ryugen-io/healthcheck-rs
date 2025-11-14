@@ -12,18 +12,18 @@ fn main() {
         CliAction::GenerateBin { output_dir } => match commands::generate_bin(output_dir) {
             Ok(()) => {}
             Err(e) => {
-                eprintln!("❌ Error: {}", e);
+                eprintln!("Error: {}", e);
                 std::process::exit(1);
             }
         },
         CliAction::Serve => {
-            eprintln!("❌ 'serve' command not yet implemented");
-            eprintln!("   Coming soon: HTTP API server mode");
+            eprintln!("Error: 'serve' command not yet implemented");
+            eprintln!("Coming soon: HTTP API server mode");
             std::process::exit(1);
         }
         CliAction::Watch => {
-            eprintln!("❌ 'watch' command not yet implemented");
-            eprintln!("   Coming soon: Continuous monitoring mode");
+            eprintln!("Error: 'watch' command not yet implemented");
+            eprintln!("Coming soon: Continuous monitoring mode");
             std::process::exit(1);
         }
         CliAction::RunChecks { config_path } => {
