@@ -1,56 +1,123 @@
 #!/usr/bin/env bash
-set -e
+#
+# rebuild.sh - Complete rebuild pipeline for healthcheck-rs
+# Runs: cargo fmt → cargo clippy → cargo auditable build
+#
+set -euo pipefail
 
-# Colors and icons
-BLUE='\033[0;34m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-RED='\033[0;31m'
-NC='\033[0m'
+# Colors and Nerd Font Icons
+readonly BLUE='\033[0;34m'
+readonly GREEN='\033[0;32m'
+readonly YELLOW='\033[1;33m'
+readonly RED='\033[0;31m'
+readonly NC='\033[0m'
 
-CHECK=""
-ROCKET=""
-WRENCH=""
-WARN=""
+readonly CHECK=""
+readonly ROCKET=""
+readonly WRENCH=""
+readonly WARN=""
+readonly ERROR=""
 
-echo -e "${BLUE}${WRENCH}  HealthCheck RS - Rebuild${NC}"
-echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}\n"
+# Cleanup on exit
+cleanup() {
+    local exit_code=$?
+    if [ $exit_code -ne 0 ]; then
+        echo -e "\n${RED}${ERROR}  Build failed with exit code ${exit_code}${NC}" >&2
+    fi
+}
+trap cleanup EXIT
 
-# Step 1: Format
-echo -e "${BLUE}1️⃣  Running cargo fmt...${NC}"
-cargo fmt --all
-echo -e "${GREEN}${CHECK}  Formatting complete${NC}\n"
+# Check required commands
+check_dependencies() {
+    local missing=()
 
-# Step 2: Clippy
-echo -e "${BLUE}2️⃣  Running cargo clippy...${NC}"
-if cargo clippy --all-targets --all-features -- -D warnings; then
-    echo -e "${GREEN}${CHECK}  Clippy passed${NC}\n"
-else
-    echo -e "${RED}✗  Clippy failed${NC}"
-    exit 1
-fi
+    if ! command -v cargo >/dev/null 2>&1; then
+        missing+=("cargo")
+    fi
 
-# Step 3: Build
-echo -e "${BLUE}3️⃣  Running cargo auditable build...${NC}"
-if cargo auditable build --release; then
+    if ! command -v cargo-auditable >/dev/null 2>&1; then
+        echo -e "${YELLOW}${WARN}  cargo-auditable not found, installing...${NC}"
+        cargo install cargo-auditable || {
+            echo -e "${RED}${ERROR}  Failed to install cargo-auditable${NC}" >&2
+            exit 1
+        }
+    fi
+
+    if [ ${#missing[@]} -gt 0 ]; then
+        echo -e "${RED}${ERROR}  Missing dependencies: ${missing[*]}${NC}" >&2
+        echo "Install from: https://rustup.rs/" >&2
+        exit 1
+    fi
+}
+
+# Print header
+print_header() {
+    echo -e "${BLUE}${WRENCH}  HealthCheck RS - Rebuild${NC}"
+    echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}\n"
+}
+
+# Run cargo fmt
+run_fmt() {
+    echo -e "${BLUE}[1/3] Running cargo fmt...${NC}"
+    if cargo fmt --all -- --check >/dev/null 2>&1; then
+        echo -e "${GREEN}${CHECK}  Code already formatted${NC}\n"
+    else
+        cargo fmt --all
+        echo -e "${GREEN}${CHECK}  Formatting complete${NC}\n"
+    fi
+}
+
+# Run cargo clippy
+run_clippy() {
+    echo -e "${BLUE}[2/3] Running cargo clippy...${NC}"
+    if ! cargo clippy --all-targets --all-features -- -D warnings 2>&1 | grep -q "warnings"; then
+        echo -e "${GREEN}${CHECK}  Clippy passed${NC}\n"
+    else
+        echo -e "${RED}${ERROR}  Clippy found issues${NC}" >&2
+        return 1
+    fi
+}
+
+# Run cargo auditable build
+run_build() {
+    echo -e "${BLUE}[3/3] Running cargo auditable build...${NC}"
+    cargo auditable build --release
     echo -e "${GREEN}${CHECK}  Build successful${NC}\n"
-else
-    echo -e "${RED}✗  Build failed${NC}"
-    exit 1
-fi
+}
 
-# Step 4: Show binary info
-BINARY="target/release/healthcheck"
-if [ -f "$BINARY" ]; then
-    SIZE=$(ls -lh "$BINARY" | awk '{print $5}')
-    echo -e "${GREEN}${ROCKET}  Binary ready: ${BINARY} (${SIZE})${NC}"
+# Show binary info
+show_binary_info() {
+    local binary="target/release/healthcheck"
+
+    if [ ! -f "$binary" ]; then
+        echo -e "${YELLOW}${WARN}  Binary not found at $binary${NC}" >&2
+        return 1
+    fi
+
+    local size
+    size=$(ls -lh "$binary" 2>/dev/null | awk '{print $5}')
+    echo -e "${GREEN}${ROCKET}  Binary ready: ${binary} (${size})${NC}"
 
     # Check for auditable metadata
-    if readelf -p .dep-v0 "$BINARY" &> /dev/null; then
-        echo -e "${GREEN}${CHECK}  Auditable metadata present${NC}"
-    else
-        echo -e "${YELLOW}${WARN}  No auditable metadata found${NC}"
+    if command -v readelf >/dev/null 2>&1; then
+        if readelf -p .dep-v0 "$binary" >/dev/null 2>&1; then
+            echo -e "${GREEN}${CHECK}  Auditable metadata present${NC}"
+        else
+            echo -e "${YELLOW}${WARN}  No auditable metadata found${NC}"
+        fi
     fi
-fi
+}
 
-echo -e "\n${GREEN}${CHECK}  All checks passed!${NC}"
+# Main execution
+main() {
+    print_header
+    check_dependencies
+    run_fmt
+    run_clippy
+    run_build
+    show_binary_info
+
+    echo -e "\n${GREEN}${CHECK}  All checks passed!${NC}"
+}
+
+main "$@"
