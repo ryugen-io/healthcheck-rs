@@ -64,6 +64,14 @@ count:
 install:
     ./install.sh
 
+# Compress binaries with UPX for all targets
+compress:
+    ./compress.sh
+
+# Compress binary with UPX for native target only (faster)
+compress-native:
+    ./compress.sh --native
+
 # Generate example configuration file
 gen-conf output="healthcheck.config":
     cargo run --release -- generate-conf --output {{output}}
