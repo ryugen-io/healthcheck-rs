@@ -34,3 +34,26 @@ Thumbs.db
 .claude/
 AGENTS.md
 /bin/
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Secret and credential files
+*.key
+*.pem
+*.p12
+*.pfx
+secrets.json
+credentials.json
+service-account*.json
+
+# Database files (may contain sensitive data)
+*.db
+*.sqlite
+*.sqlite3
+
+# Configuration files that might contain secrets
+config.local.*
+*.config.local
