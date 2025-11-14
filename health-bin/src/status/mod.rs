@@ -49,7 +49,7 @@ const JSON_ESCAPE_BUFFER: usize = 16;
 /// Escape special characters in JSON strings per RFC 8259
 ///
 /// This function is public for testing purposes
-pub fn escape_json_string(s: &str) -> String {
+fn escape_json_string(s: &str) -> String {
     // Pre-allocate with some extra capacity for escape sequences
     let mut result = String::with_capacity(s.len() + JSON_ESCAPE_BUFFER);
 
@@ -73,3 +73,6 @@ pub fn escape_json_string(s: &str) -> String {
 
     result
 }
+
+#[cfg(test)]
+mod tests;

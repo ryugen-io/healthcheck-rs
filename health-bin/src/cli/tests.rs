@@ -1,4 +1,4 @@
-use healthcheck_bin::cli::parse_output_flag;
+use super::*;
 
 #[test]
 fn test_parse_output_flag_normal() {

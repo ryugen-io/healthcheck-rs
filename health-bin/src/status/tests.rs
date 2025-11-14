@@ -1,4 +1,4 @@
-use healthcheck_bin::status::escape_json_string;
+use super::*;
 
 #[test]
 fn test_escape_json_string_no_escapes() {

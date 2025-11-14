@@ -1,4 +1,4 @@
-use healthcheck_bin::path_validation::validate_output_path;
+use super::*;
 use std::env;
 
 #[test]

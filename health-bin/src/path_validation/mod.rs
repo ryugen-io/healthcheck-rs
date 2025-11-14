@@ -5,7 +5,7 @@ use std::path::{Path, PathBuf};
 /// Uses canonicalization to prevent TOCTOU vulnerabilities
 ///
 /// This function is public for testing purposes
-pub fn validate_output_path(path: &str) -> Result<PathBuf, String> {
+pub(crate) fn validate_output_path(path: &str) -> Result<PathBuf, String> {
     let path_obj = Path::new(path);
 
     // Determine if this is a file or directory path
@@ -144,3 +144,6 @@ pub fn validate_output_path(path: &str) -> Result<PathBuf, String> {
         Ok(canonical)
     }
 }
+
+#[cfg(test)]
+mod tests;

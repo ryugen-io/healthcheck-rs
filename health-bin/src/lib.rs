@@ -1,3 +1,2 @@
-pub mod cli;
-pub mod path_validation;
-pub mod status;
+// Internal modules - not part of public API
+// These are used internally by the binary and tests
