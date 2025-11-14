@@ -43,7 +43,7 @@ pub fn print_error_json(message: &str) {
     println!("}}");
 }
 
-/// Escape special characters in JSON strings more efficiently
+/// Escape special characters in JSON strings per RFC 8259
 fn escape_json_string(s: &str) -> String {
     // Pre-allocate with some extra capacity for escape sequences
     let mut result = String::with_capacity(s.len() + 16);
@@ -55,6 +55,12 @@ fn escape_json_string(s: &str) -> String {
             '\n' => result.push_str("\\n"),
             '\r' => result.push_str("\\r"),
             '\t' => result.push_str("\\t"),
+            '\u{0008}' => result.push_str("\\b"), // backspace
+            '\u{000C}' => result.push_str("\\f"), // form feed
+            // Escape all other control characters (U+0000 to U+001F)
+            c if c < '\u{0020}' => {
+                result.push_str(&format!("\\u{:04x}", c as u32));
+            }
             _ => result.push(ch),
         }
     }
@@ -114,5 +120,20 @@ mod tests {
     fn test_escape_json_string_unicode() {
         assert_eq!(escape_json_string("hello 世界"), "hello 世界");
         assert_eq!(escape_json_string("emoji 🚀"), "emoji 🚀");
+    }
+
+    #[test]
+    fn test_escape_json_string_control_chars() {
+        // Backspace and form feed
+        assert_eq!(escape_json_string("\u{0008}"), "\\b");
+        assert_eq!(escape_json_string("\u{000C}"), "\\f");
+
+        // Other control characters
+        assert_eq!(escape_json_string("\u{0000}"), "\\u0000"); // null
+        assert_eq!(escape_json_string("\u{0001}"), "\\u0001"); // SOH
+        assert_eq!(escape_json_string("\u{001F}"), "\\u001f"); // unit separator
+
+        // Mixed with normal text
+        assert_eq!(escape_json_string("test\u{0000}data"), "test\\u0000data");
     }
 }

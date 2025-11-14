@@ -1,7 +1,34 @@
 use std::env;
 use std::fs;
 use std::io::Write;
-use std::path::Path;
+use std::path::{Path, PathBuf};
+
+/// Validate and canonicalize output path to prevent path traversal attacks
+fn validate_output_path(path: &str) -> Result<PathBuf, String> {
+    // Reject obvious path traversal patterns
+    if path.contains("..") {
+        return Err("Path traversal detected: '..' is not allowed".to_string());
+    }
+
+    // Reject absolute paths to sensitive directories
+    let path_obj = Path::new(path);
+    if path_obj.is_absolute() {
+        let path_str = path_obj.to_string_lossy();
+        if path_str.starts_with("/etc")
+            || path_str.starts_with("/sys")
+            || path_str.starts_with("/proc")
+            || path_str.starts_with("C:\\Windows")
+            || path_str.starts_with("C:\\Program Files")
+        {
+            return Err(format!(
+                "Access to system directory '{}' is not allowed",
+                path
+            ));
+        }
+    }
+
+    Ok(path_obj.to_path_buf())
+}
 
 fn get_platform_info() -> (&'static str, &'static str, &'static str) {
     let os = if cfg!(target_os = "linux") {
@@ -40,14 +67,16 @@ pub fn generate_bin(output_dir: Option<String>) -> Result<(), String> {
     let current_exe =
         env::current_exe().map_err(|e| format!("Failed to get current executable path: {}", e))?;
 
-    // Determine output directory
+    // Determine and validate output directory
     let out_dir = output_dir.as_deref().unwrap_or("./bin");
-    fs::create_dir_all(out_dir)
+    let validated_path = validate_output_path(out_dir)?;
+
+    fs::create_dir_all(&validated_path)
         .map_err(|e| format!("Failed to create output directory '{}': {}", out_dir, e))?;
 
     // Generate platform-specific binary name
     let binary_name = format!("healthcheck-{}-{}{}", os, arch, ext);
-    let output_path = Path::new(out_dir).join(&binary_name);
+    let output_path = validated_path.join(&binary_name);
 
     println!("Generating binary for deployment...");
     println!("  Platform: {}-{}", os, arch);
@@ -80,9 +109,17 @@ pub fn generate_bin(output_dir: Option<String>) -> Result<(), String> {
 
 pub fn generate_conf(output_path: Option<String>) -> Result<(), String> {
     let config_path = output_path.as_deref().unwrap_or("healthcheck.config");
+    let validated_path = validate_output_path(config_path)?;
 
     let example_config = r#"# HealthCheck RS Configuration
 # Format: check_type:param1=value1,param2=value2
+
+# SECURITY WARNING:
+# This config contains example credentials. DO NOT use these in production!
+# Use environment variables for sensitive data:
+#   - Set DB_PASSWORD env var and reference it in your application
+#   - Use secrets management (Vault, AWS Secrets Manager, etc.)
+#   - Never commit real credentials to version control
 
 # TCP Port Checks
 # Check if a TCP port is open and accepting connections
@@ -95,10 +132,11 @@ http:url=http://localhost:8080/health,timeout_ms=5000
 http:url=http://localhost:3000/api/health,timeout_ms=3000
 
 # Database Checks (PostgreSQL)
-# Check database connectivity and execute test query
-database:conn_str=postgresql://user:password@localhost:5432/dbname,timeout_ms=3000
+# SECURITY: Replace 'user:password' with environment variables in production!
+# Example: postgresql://${DB_USER}:${DB_PASSWORD}@localhost:5432/dbname
+database:conn_str=postgresql://user:CHANGE_ME@localhost:5432/dbname,timeout_ms=3000
 # Or use individual parameters:
-# database:host=localhost,port=5432,user=postgres,password=secret,dbname=mydb,timeout_ms=3000
+# database:host=localhost,port=5432,user=postgres,password=CHANGE_ME,dbname=mydb,timeout_ms=3000
 
 # Process Checks (Linux only)
 # Check if a process is running by name
@@ -109,7 +147,7 @@ process:name=postgres
 # All checks run in parallel for fast results
 "#;
 
-    let mut file = fs::File::create(config_path)
+    let mut file = fs::File::create(&validated_path)
         .map_err(|e| format!("Failed to create config file '{}': {}", config_path, e))?;
 
     file.write_all(example_config.as_bytes())
@@ -122,4 +160,38 @@ process:name=postgres
     println!("  healthcheck {}", config_path);
 
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_validate_output_path_normal() {
+        assert!(validate_output_path("./bin").is_ok());
+        assert!(validate_output_path("output").is_ok());
+        assert!(validate_output_path("./output/dir").is_ok());
+    }
+
+    #[test]
+    fn test_validate_output_path_rejects_traversal() {
+        assert!(validate_output_path("../etc").is_err());
+        assert!(validate_output_path("../../etc/passwd").is_err());
+        assert!(validate_output_path("foo/../bar").is_err());
+    }
+
+    #[test]
+    fn test_validate_output_path_rejects_system_dirs() {
+        assert!(validate_output_path("/etc/config").is_err());
+        assert!(validate_output_path("/sys/kernel").is_err());
+        assert!(validate_output_path("/proc/self").is_err());
+    }
+
+    #[test]
+    fn test_validate_output_path_windows() {
+        if cfg!(windows) {
+            assert!(validate_output_path("C:\\Windows\\System32").is_err());
+            assert!(validate_output_path("C:\\Program Files\\test").is_err());
+        }
+    }
 }
