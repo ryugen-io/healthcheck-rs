@@ -64,7 +64,14 @@ pub fn parse_args() -> CliAction {
             "-v" | "--version" => return CliAction::Version,
             "generate-bin" => {
                 let output_dir = if args.len() > 2 && args[2] == "--output" {
-                    args.get(3).cloned()
+                    match args.get(3) {
+                        Some(path) => Some(path.clone()),
+                        None => {
+                            eprintln!("Error: --output requires a path argument");
+                            eprintln!("Usage: healthcheck generate-bin --output <path>");
+                            std::process::exit(2);
+                        }
+                    }
                 } else {
                     None
                 };
@@ -72,7 +79,14 @@ pub fn parse_args() -> CliAction {
             }
             "generate-conf" => {
                 let output_path = if args.len() > 2 && args[2] == "--output" {
-                    args.get(3).cloned()
+                    match args.get(3) {
+                        Some(path) => Some(path.clone()),
+                        None => {
+                            eprintln!("Error: --output requires a path argument");
+                            eprintln!("Usage: healthcheck generate-conf --output <path>");
+                            std::process::exit(2);
+                        }
+                    }
                 } else {
                     None
                 };

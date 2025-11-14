@@ -70,7 +70,7 @@ run_fmt() {
 # Run cargo clippy
 run_clippy() {
     echo -e "${BLUE}[2/3] Running cargo clippy...${NC}"
-    if ! cargo clippy --all-targets --all-features -- -D warnings 2>&1 | grep -q "warnings"; then
+    if cargo clippy --all-targets --all-features -- -D warnings 2>&1; then
         echo -e "${GREEN}${CHECK}  Clippy passed${NC}\n"
     else
         echo -e "${RED}${ERROR}  Clippy found issues${NC}" >&2

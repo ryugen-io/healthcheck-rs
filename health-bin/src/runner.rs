@@ -4,17 +4,16 @@ use healthcheck_core::{
     registry::CheckRegistry,
 };
 use log::{error, info};
-use std::env;
 
 use crate::status::{CheckResult, print_error_json, print_results};
 
 fn init_logger() {
-    if env::var("RUST_LOG").is_err() {
-        // SAFETY: this executes during start-up before any other threads spawn.
-        unsafe { env::set_var("RUST_LOG", "info") };
-    }
-
-    let _ = env_logger::builder().format_timestamp_millis().try_init();
+    // Use env_logger's built-in default filter instead of unsafe env::set_var
+    let _ = env_logger::builder()
+        .filter_level(log::LevelFilter::Info)
+        .parse_default_env()
+        .format_timestamp_millis()
+        .try_init();
 }
 
 fn build_registry() -> CheckRegistry {
