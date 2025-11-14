@@ -103,13 +103,16 @@ pub(crate) fn validate_output_path(path: &str) -> Result<PathBuf, String> {
             "/usr/bin",  // User binaries
             "/usr/sbin", // User system binaries
             "/usr/lib",  // User libraries
-            "/var/run",  // Runtime data
+            "/run",      // Runtime data (canonical target of /var/run)
+            "/var/run",  // Runtime data (often symlinked to /run)
             "/var/lock", // Lock files
             "/root",     // Root home directory
         ];
 
         for dir in &protected_dirs {
-            if canonical_str.starts_with(dir) {
+            // Check for exact match or directory followed by /
+            // This prevents false positives like /etc-backup or /binary
+            if canonical_str == *dir || canonical_str.starts_with(&format!("{}/", dir)) {
                 return Err(format!(
                     "Access to system directory '{}' is not allowed",
                     canonical_str
@@ -130,7 +133,9 @@ pub(crate) fn validate_output_path(path: &str) -> Result<PathBuf, String> {
         ];
 
         for dir in &protected_dirs {
-            if lower.starts_with(dir) {
+            // Check for exact match or directory followed by \
+            // This prevents false positives like c:\windows-backup
+            if lower == *dir || lower.starts_with(&format!("{}\\", dir)) {
                 return Err(format!(
                     "Access to system directory '{}' is not allowed",
                     canonical_str
