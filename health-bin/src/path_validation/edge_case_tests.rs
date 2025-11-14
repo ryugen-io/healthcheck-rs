@@ -8,7 +8,11 @@ fn test_validate_output_path_directory_with_dots() {
 
     // Test that a directory with dots is handled correctly
     let result = validate_output_path(test_dir);
-    assert!(result.is_ok(), "Should allow directory with dots: {:?}", result);
+    assert!(
+        result.is_ok(),
+        "Should allow directory with dots: {:?}",
+        result
+    );
 
     // Clean up
     std::fs::remove_dir(test_dir).ok();
@@ -23,7 +27,11 @@ fn test_validate_output_path_file_in_dotted_directory() {
     // Test file path within dotted directory
     let file_path = format!("{}/config.txt", test_dir);
     let result = validate_output_path(&file_path);
-    assert!(result.is_ok(), "Should allow file in dotted directory: {:?}", result);
+    assert!(
+        result.is_ok(),
+        "Should allow file in dotted directory: {:?}",
+        result
+    );
 
     // Clean up
     std::fs::remove_dir(test_dir).ok();
@@ -47,8 +55,10 @@ fn test_validate_output_path_symlink() {
 
     // Verify it resolves to the real path
     if let Ok(canonical) = result {
-        assert!(canonical.to_string_lossy().contains("test_real_dir"),
-                "Symlink should resolve to real directory");
+        assert!(
+            canonical.to_string_lossy().contains("test_real_dir"),
+            "Symlink should resolve to real directory"
+        );
     }
 
     // Clean up
@@ -67,12 +77,20 @@ fn test_validate_output_path_nonexistent_directory_with_dots() {
     // Without trailing slash, will be treated as a file, so parent must exist
     let result = validate_output_path(test_path);
     // Current directory exists, so this should succeed
-    assert!(result.is_ok(), "Should handle non-existent path with dots: {:?}", result);
+    assert!(
+        result.is_ok(),
+        "Should handle non-existent path with dots: {:?}",
+        result
+    );
 
     // With trailing slash, should be treated as directory
     let test_path_with_slash = "./test.output.dir/";
     let result = validate_output_path(test_path_with_slash);
-    assert!(result.is_ok(), "Should handle non-existent directory path with dots and slash: {:?}", result);
+    assert!(
+        result.is_ok(),
+        "Should handle non-existent directory path with dots and slash: {:?}",
+        result
+    );
 }
 
 #[test]
