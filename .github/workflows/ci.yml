@@ -23,17 +23,15 @@ env:
   RUSTFLAGS: -D warnings
 
 jobs:
-  # Fast checks that run in parallel
-  format:
-    name: Auto-Format
+  # Check if Rust files changed (used by all other jobs)
+  check-changes:
+    name: Check Changes
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
+    outputs:
+      rust_changed: ${{ steps.check-rust-files.outputs.rust_changed }}
     steps:
       - uses: actions/checkout@v4
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          ref: ${{ github.head_ref || github.ref }}
           fetch-depth: 0
 
       - name: Check if Rust files changed
@@ -55,19 +53,30 @@ jobs:
             fi
           fi
 
+  # Fast checks that run in parallel
+  format:
+    name: Auto-Format
+    runs-on: ubuntu-latest
+    needs: check-changes
+    if: needs.check-changes.outputs.rust_changed == 'true'
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          ref: ${{ github.head_ref || github.ref }}
+
       - name: Install Rust
-        if: steps.check-rust-files.outputs.rust_changed == 'true'
         uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: stable
           components: rustfmt
 
       - name: Run cargo fmt
-        if: steps.check-rust-files.outputs.rust_changed == 'true'
         run: cargo fmt --all
 
       - name: Check for formatting changes
-        if: steps.check-rust-files.outputs.rust_changed == 'true'
         id: verify-changed-files
         run: |
           if git diff --quiet; then
@@ -77,7 +86,7 @@ jobs:
           fi
 
       - name: Commit and push formatting changes
-        if: steps.check-rust-files.outputs.rust_changed == 'true' && steps.verify-changed-files.outputs.changed == 'true'
+        if: steps.verify-changed-files.outputs.changed == 'true'
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
@@ -88,6 +97,8 @@ jobs:
   clippy:
     name: Clippy Lint
     runs-on: ubuntu-latest
+    needs: check-changes
+    if: needs.check-changes.outputs.rust_changed == 'true'
     steps:
       - uses: actions/checkout@v4
 
@@ -115,6 +126,8 @@ jobs:
   build:
     name: Build Check
     runs-on: ubuntu-latest
+    needs: check-changes
+    if: needs.check-changes.outputs.rust_changed == 'true'
     steps:
       - uses: actions/checkout@v4
 
@@ -141,7 +154,8 @@ jobs:
   test:
     name: Test Suite
     runs-on: ubuntu-latest
-    needs: build
+    needs: [check-changes, build]
+    if: needs.check-changes.outputs.rust_changed == 'true'
     steps:
       - uses: actions/checkout@v4
 
@@ -171,6 +185,8 @@ jobs:
   bench:
     name: Benchmark Check
     runs-on: ubuntu-latest
+    needs: check-changes
+    if: needs.check-changes.outputs.rust_changed == 'true'
     steps:
       - uses: actions/checkout@v4
 
@@ -197,6 +213,8 @@ jobs:
   audit:
     name: Security Audit
     runs-on: ubuntu-latest
+    needs: check-changes
+    if: needs.check-changes.outputs.rust_changed == 'true'
     steps:
       - uses: actions/checkout@v4
 
@@ -208,6 +226,8 @@ jobs:
   deny:
     name: Cargo Deny
     runs-on: ubuntu-latest
+    needs: check-changes
+    if: needs.check-changes.outputs.rust_changed == 'true'
     steps:
       - uses: actions/checkout@v4
 
